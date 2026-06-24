@@ -22,3 +22,4 @@ Currently candidate selection is simple selection following the basic rules of s
 - allow value replacement
 - handle different sized games
 - improve candidate calculation
+- shrink and auto exit on fully solved puzzle
