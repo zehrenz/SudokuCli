@@ -4,13 +4,21 @@ import './engine.dart';
 
 var error = '';
 void main(List<String> args) {
-  var rawFile = File(args[0]).readAsStringSync();
+  bool autoSolve;
+  String rawFile;
+  if (args[0] == '-a') {
+    autoSolve = true;
+    rawFile = File(args[1]).readAsStringSync();
+  } else {
+    autoSolve = false;
+    rawFile = File(args[0]).readAsStringSync();
+  }
   rawFile = rawFile.replaceAll(RegExp(r'\r\n'), '\n');
   rawFile = rawFile.replaceAll(RegExp(r'\n\r'), '\n');
   var puzzleStr = rawFile.endsWith('\n')
       ? rawFile.substring(0, rawFile.length - 1)
       : rawFile;
-  var engine = SudokuEngine(puzzleStr);
+  var engine = SudokuEngine(puzzleStr, autoSolve);
   print(engine.buildStateString());
   while (true) {
     if (!error.isEmpty) {

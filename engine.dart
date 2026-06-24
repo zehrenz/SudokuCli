@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 const COL_HEADER = '   1   2   3   4   5   6   7   8   9 \n';
 const ROW_HEADER = '  a  b  c  d  e  f  g  h  i ';
 var ROW_SPLITTER = blue('  ---+---+---+---+---+---+---+---+---\n');
@@ -14,8 +16,13 @@ String red(Object str) {
 
 class SudokuEngine {
   List<List<Box>> boxes;
-  SudokuEngine(String strGrid) : this.boxes = parseInput(strGrid) {
-    updateAll();
+  bool autoSolve;
+  bool _solving = false;
+
+  SudokuEngine(String strGrid, this.autoSolve)
+    : this.boxes = parseInput(strGrid) {
+    updateAllCandidates();
+    if (autoSolve) solve();
   }
 
   String placeVal(int row, int col, int val) {
@@ -26,11 +33,35 @@ class SudokuEngine {
       return '${val} is not a candidate for that box';
     }
     box.setValue(val);
-    updateAll();
+    updateRow(row, val);
+    updateCol(col, val);
+    updateHome(row ~/ 3, col ~/ 3, val);
+    if (autoSolve && !_solving) solve();
     return '';
   }
 
-  void updateAll() {
+  void solve() {
+    _solving = true;
+    try {
+      var changed = true;
+      while (changed) {
+        changed = false;
+        for (int row = 0; row < 9; row++) {
+          for (int col = 0; col < 9; col++) {
+            var box = boxes[row][col];
+            if (box.value == 0 && box.candidates.length == 1) {
+              placeVal(row, col, box.candidates.first);
+              changed = true;
+            }
+          }
+        }
+      }
+    } finally {
+      _solving = false;
+    }
+  }
+
+  void updateAllCandidates() {
     for (int row = 0; row < 9; row++) {
       for (int col = 0; col < 9; col++) {
         updateCandidates(row, col);
@@ -38,30 +69,52 @@ class SudokuEngine {
     }
   }
 
+  void updateRow(int row, int val) {
+    for (int col = 0; col < 9; col++) {
+      boxes[row][col].candidates.remove(val);
+    }
+  }
+
+  void updateCol(int col, int val) {
+    for (int row = 0; row < 9; row++) {
+      boxes[row][col].candidates.remove(val);
+    }
+  }
+
+  void updateHome(int homeRow, int homeCol, int val) {
+    var rowBase = homeRow * 3;
+    var colBase = homeCol * 3;
+    for (int row = 0; row < 3; row++) {
+      for (int col = 0; col < 3; col++) {
+        boxes[row + rowBase][col + colBase].candidates.remove(val);
+      }
+    }
+  }
+
   void updateCandidates(int row, int col) {
     var box = boxes[row][col];
     if (box.value != 0) return;
-    updateByRow(row, box);
-    updateByCol(col, box);
-    updateByHome(row ~/ 3, col ~/ 3, box);
+    updateCandidatesByRow(row, box);
+    updateCandidatesByCol(col, box);
+    updateCandidatesByHome(row ~/ 3, col ~/ 3, box);
   }
 
-  void updateByRow(int row, Box box) {
+  void updateCandidatesByRow(int row, Box box) {
     for (int col = 0; col < 9; col++) {
       box.candidates.remove(boxes[row][col].value);
     }
   }
 
-  void updateByCol(int col, Box box) {
+  void updateCandidatesByCol(int col, Box box) {
     for (int row = 0; row < 9; row++) {
       box.candidates.remove(boxes[row][col].value);
     }
   }
 
-  void updateByHome(int homeRow, int homeCol, Box box) {
+  void updateCandidatesByHome(int homeRow, int homeCol, Box box) {
     var rowBase = homeRow * 3;
     var colBase = homeCol * 3;
-    for (int row = 1; row < 3; row++) {
+    for (int row = 0; row < 3; row++) {
       for (int col = 0; col < 3; col++) {
         box.candidates.remove(boxes[row + rowBase][col + colBase].value);
       }
