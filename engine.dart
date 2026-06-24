@@ -13,27 +13,27 @@ String red(Object str) {
 }
 
 class SudokuEngine {
-  List<List<Box>> boxes;
+  List<List<Cell>> cells;
   bool autoSolve;
   bool _solving = false;
 
   SudokuEngine(String strGrid, this.autoSolve)
-    : this.boxes = parseInput(strGrid) {
+    : this.cells = parseInput(strGrid) {
     updateAllCandidates();
     if (autoSolve) solve();
   }
 
   String placeVal(int row, int col, int val) {
-    var box = boxes[row][col];
-    if (box.value != 0) {
-      return 'Box already has a value';
-    } else if (!box.candidates.contains(val)) {
-      return '${val} is not a candidate for that box';
+    var cell = cells[row][col];
+    if (cell.value != 0) {
+      return 'Cell already has a value';
+    } else if (!cell.candidates.contains(val)) {
+      return '${val} is not a candidate for that cell';
     }
-    box.setValue(val);
+    cell.setValue(val);
     updateRow(row, val);
     updateCol(col, val);
-    updateHome(row ~/ 3, col ~/ 3, val);
+    updateBox(row ~/ 3, col ~/ 3, val);
     if (autoSolve && !_solving) solve();
     return '';
   }
@@ -46,9 +46,9 @@ class SudokuEngine {
         changed = false;
         for (int row = 0; row < 9; row++) {
           for (int col = 0; col < 9; col++) {
-            var box = boxes[row][col];
-            if (box.value == 0 && box.candidates.length == 1) {
-              placeVal(row, col, box.candidates.first);
+            var cell = cells[row][col];
+            if (cell.value == 0 && cell.candidates.length == 1) {
+              placeVal(row, col, cell.candidates.first);
               changed = true;
             }
           }
@@ -69,68 +69,68 @@ class SudokuEngine {
 
   void updateRow(int row, int val) {
     for (int col = 0; col < 9; col++) {
-      boxes[row][col].candidates.remove(val);
+      cells[row][col].candidates.remove(val);
     }
   }
 
   void updateCol(int col, int val) {
     for (int row = 0; row < 9; row++) {
-      boxes[row][col].candidates.remove(val);
+      cells[row][col].candidates.remove(val);
     }
   }
 
-  void updateHome(int homeRow, int homeCol, int val) {
-    var rowBase = homeRow * 3;
-    var colBase = homeCol * 3;
+  void updateBox(int boxRow, int boxCol, int val) {
+    var rowBase = boxRow * 3;
+    var colBase = boxCol * 3;
     for (int row = 0; row < 3; row++) {
       for (int col = 0; col < 3; col++) {
-        boxes[row + rowBase][col + colBase].candidates.remove(val);
+        cells[row + rowBase][col + colBase].candidates.remove(val);
       }
     }
   }
 
   void updateCandidates(int row, int col) {
-    var box = boxes[row][col];
-    if (box.value != 0) return;
-    updateCandidatesByRow(row, box);
-    updateCandidatesByCol(col, box);
-    updateCandidatesByHome(row ~/ 3, col ~/ 3, box);
+    var cell = cells[row][col];
+    if (cell.value != 0) return;
+    updateCandidatesByRow(row, cell);
+    updateCandidatesByCol(col, cell);
+    updateCandidatesByBox(row ~/ 3, col ~/ 3, cell);
   }
 
-  void updateCandidatesByRow(int row, Box box) {
+  void updateCandidatesByRow(int row, Cell cell) {
     for (int col = 0; col < 9; col++) {
-      box.candidates.remove(boxes[row][col].value);
+      cell.candidates.remove(cells[row][col].value);
     }
   }
 
-  void updateCandidatesByCol(int col, Box box) {
+  void updateCandidatesByCol(int col, Cell cell) {
     for (int row = 0; row < 9; row++) {
-      box.candidates.remove(boxes[row][col].value);
+      cell.candidates.remove(cells[row][col].value);
     }
   }
 
-  void updateCandidatesByHome(int homeRow, int homeCol, Box box) {
-    var rowBase = homeRow * 3;
-    var colBase = homeCol * 3;
+  void updateCandidatesByBox(int boxRow, int boxCol, Cell cell) {
+    var rowBase = boxRow * 3;
+    var colBase = boxCol * 3;
     for (int row = 0; row < 3; row++) {
       for (int col = 0; col < 3; col++) {
-        box.candidates.remove(boxes[row + rowBase][col + colBase].value);
+        cell.candidates.remove(cells[row + rowBase][col + colBase].value);
       }
     }
   }
 
-  static List<List<Box>> parseInput(String strGrid) {
-    List<List<Box>> newValues = [];
+  static List<List<Cell>> parseInput(String strGrid) {
+    List<List<Cell>> newValues = [];
     var rows = strGrid.split('\n');
     if (rows.length != 9) throw Exception('Invalid row count: ${rows.length}');
     for (int r = 0; r < 9; r++) {
       var strRow = rows[r];
-      List<Box> row = [];
+      List<Cell> row = [];
       var cols = strRow.split(',');
       if (cols.length != 9)
         throw Exception('Invalid col count: ${cols.length} in row: ${r}');
       for (var strCol in cols) {
-        row.add(Box(strCol));
+        row.add(Cell(strCol));
       }
       newValues.add(row);
     }
@@ -144,17 +144,17 @@ class SudokuEngine {
         state.write(ROW_HEADER[(row * 3) + subRow + 1] + " ");
         for (int col = 0; col < 9; col++) {
           for (var subCol in [0, 1, 2]) {
-            var box = boxes[row][col];
-            if (box.value != 0) {
+            var cell = cells[row][col];
+            if (cell.value != 0) {
               if (subRow != 1 || subCol != 1)
                 state.write(' ');
               else
-                state.write(blue(box.value));
+                state.write(blue(cell.value));
             } else {
               var val = ((subRow) * 3) + (1 + subCol);
               state.write(
-                box.candidates.contains(val)
-                    ? box.candidates.length == 1
+                cell.candidates.contains(val)
+                    ? cell.candidates.length == 1
                           ? red(val)
                           : val
                     : ' ',
@@ -179,11 +179,11 @@ class SudokuEngine {
   }
 }
 
-class Box {
+class Cell {
   late int value;
   Set<int> candidates = {1, 2, 3, 4, 5, 6, 7, 8, 9};
 
-  Box(String strVal) {
+  Cell(String strVal) {
     if (strVal.isEmpty || strVal == '0' || strVal == '-') {
       value = 0;
     } else {
