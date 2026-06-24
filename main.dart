@@ -41,7 +41,6 @@ void main(List<String> args) {
         error = engine.placeVal(row, col, val);
       print(engine.buildStateString());
     }
-    showHelp();
   }
 }
 
