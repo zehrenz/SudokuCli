@@ -32,7 +32,6 @@ extension Batcher<T> on Iterable<T> {
 class SudokuEngine {
   List<List<Cell>> cells;
   bool autoSolve;
-  bool _solving = false;
   bool get solved => cells.every((row) => row.every((cell) => cell.value != 0));
 
   SudokuEngine(String strGrid, this.autoSolve)
@@ -48,32 +47,33 @@ class SudokuEngine {
     } else if (!cell.candidates.contains(val)) {
       return '${val} is not a candidate for that cell';
     }
+    _placeVal(row, col, val);
+    if (autoSolve) solve();
+    return '';
+  }
+
+  String _placeVal(int row, int col, int val) {
+    var cell = cells[row][col];
     cell.setValue(val);
     updateRow(row, val);
     updateCol(col, val);
     updateBox(row ~/ 3, col ~/ 3, val);
-    if (autoSolve && !_solving) solve();
     return '';
   }
 
   void solve() {
-    _solving = true;
-    try {
-      var changed = true;
-      while (changed) {
-        changed = false;
-        for (int row = 0; row < 9; row++) {
-          for (int col = 0; col < 9; col++) {
-            var cell = cells[row][col];
-            if (cell.value == 0 && cell.candidates.length == 1) {
-              placeVal(row, col, cell.candidates.first);
-              changed = true;
-            }
+    var changed = true;
+    while (changed) {
+      changed = false;
+      for (int row = 0; row < 9; row++) {
+        for (int col = 0; col < 9; col++) {
+          var cell = cells[row][col];
+          if (cell.value == 0 && cell.candidates.length == 1) {
+            _placeVal(row, col, cell.candidates.first);
+            changed = true;
           }
         }
       }
-    } finally {
-      _solving = false;
     }
   }
 
