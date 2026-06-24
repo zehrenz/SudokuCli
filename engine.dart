@@ -8,6 +8,10 @@ String blue(Object str) {
   return '\x1B[34m${str}\x1B[0m';
 }
 
+String green(Object str) {
+  return '\x1B[32m${str}\x1B[0m';
+}
+
 String purple(Object str) {
   return '\x1B[35m${str}\x1B[0m';
 }
@@ -149,21 +153,7 @@ class SudokuEngine {
         for (int col = 0; col < 9; col++) {
           for (var subCol in [0, 1, 2]) {
             var cell = cells[row][col];
-            if (cell.value != 0) {
-              if (subRow != 1 || subCol != 1)
-                state.write(' ');
-              else
-                state.write(cell.given ? purple(cell.value) : blue(cell.value));
-            } else {
-              var val = ((subRow) * 3) + (1 + subCol);
-              state.write(
-                cell.candidates.contains(val)
-                    ? cell.candidates.length == 1
-                          ? red(val)
-                          : val
-                    : ' ',
-              );
-            }
+            state.write(cell.getStringForSubCell(subRow, subCol));
           }
           if (col < 8)
             if ((col + 1) % 3 == 0)
@@ -203,5 +193,21 @@ class Cell {
     if (given) return;
     value = val;
     candidates.clear();
+  }
+
+  String getStringForSubCell(int subRow, int subCol) {
+    if (value != 0) {
+      if (subRow != 1 || subCol != 1)
+        return ' ';
+      else
+        return given ? purple(value) : blue(value);
+    } else {
+      var val = ((subRow) * 3) + (1 + subCol);
+      return candidates.contains(val)
+          ? candidates.length == 1
+                ? green(val)
+                : val.toString()
+          : ' ';
+    }
   }
 }
