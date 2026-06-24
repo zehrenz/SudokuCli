@@ -8,6 +8,10 @@ String blue(Object str) {
   return '\x1B[34m${str}\x1B[0m';
 }
 
+String purple(Object str) {
+  return '\x1B[35m${str}\x1B[0m';
+}
+
 String red(Object str) {
   return '\x1B[31m${str}\x1B[0m';
 }
@@ -149,7 +153,7 @@ class SudokuEngine {
               if (subRow != 1 || subCol != 1)
                 state.write(' ');
               else
-                state.write(blue(cell.value));
+                state.write(cell.given ? purple(cell.value) : blue(cell.value));
             } else {
               var val = ((subRow) * 3) + (1 + subCol);
               state.write(
@@ -181,18 +185,22 @@ class SudokuEngine {
 
 class Cell {
   late int value;
+  late bool given;
   Set<int> candidates = {1, 2, 3, 4, 5, 6, 7, 8, 9};
 
   Cell(String strVal) {
     if (strVal.isEmpty || strVal == '0' || strVal == '-') {
       value = 0;
+      given = false;
     } else {
+      given = true;
       value = int.parse(strVal);
       candidates.clear();
     }
   }
 
   void setValue(int val) {
+    if (given) return;
     value = val;
     candidates.clear();
   }

@@ -20,6 +20,5 @@ Currently candidate selection is simple selection following the basic rules of s
 
 - improve solving tricks
 - allow value replacement
-- indicate starting values
 - handle different sized games
 - improve candidate calculation
