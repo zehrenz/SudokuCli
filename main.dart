@@ -1,6 +1,7 @@
 import 'dart:io';
 
-import './engine.dart';
+import 'colors.dart';
+import 'engine.dart';
 
 var error = '';
 void main(List<String> args) {

@@ -1,25 +1,11 @@
+import 'colors.dart';
+
 const COL_HEADER = '   1   2   3   4   5   6   7   8   9 \n';
 const ROW_HEADER = '  a  b  c  d  e  f  g  h  i ';
 var ROW_SPLITTER = blue('  ---+---+---+---+---+---+---+---+---\n');
 var SUB_ROW_SPLITTER =
     '  ---+---+---${blue('+')}---+---+---${blue('+')}---+---+---\n';
 const COMPACT_ROW_SPLITTER = '\n---+---+---\n';
-
-String blue(Object str) {
-  return '\x1B[34m${str}\x1B[0m';
-}
-
-String green(Object str) {
-  return '\x1B[32m${str}\x1B[0m';
-}
-
-String purple(Object str) {
-  return '\x1B[35m${str}\x1B[0m';
-}
-
-String red(Object str) {
-  return '\x1B[31m${str}\x1B[0m';
-}
 
 extension Batcher<T> on Iterable<T> {
   Iterable<List<T>> batch(int size) sync* {
