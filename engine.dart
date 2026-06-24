@@ -3,6 +3,7 @@ const ROW_HEADER = '  a  b  c  d  e  f  g  h  i ';
 var ROW_SPLITTER = blue('  ---+---+---+---+---+---+---+---+---\n');
 var SUB_ROW_SPLITTER =
     '  ---+---+---${blue('+')}---+---+---${blue('+')}---+---+---\n';
+const COMPACT_ROW_SPLITTER = '\n---+---+---\n';
 
 String blue(Object str) {
   return '\x1B[34m${str}\x1B[0m';
@@ -20,10 +21,19 @@ String red(Object str) {
   return '\x1B[31m${str}\x1B[0m';
 }
 
+extension Batcher<T> on Iterable<T> {
+  Iterable<List<T>> batch(int size) sync* {
+    for (var i = 0; i < length; i += size) {
+      yield skip(i).take(size).toList();
+    }
+  }
+}
+
 class SudokuEngine {
   List<List<Cell>> cells;
   bool autoSolve;
   bool _solving = false;
+  bool get solved => cells.every((row) => row.every((cell) => cell.value != 0));
 
   SudokuEngine(String strGrid, this.autoSolve)
     : this.cells = parseInput(strGrid) {
@@ -145,6 +155,24 @@ class SudokuEngine {
     return newValues;
   }
 
+  String getBoardString() {
+    return solved ? buildCompactString() : buildStateString();
+  }
+
+  String buildCompactString() {
+    return cells
+        .map(
+          (row) => row
+              .map((cell) => cell.toString())
+              .batch(3)
+              .map((chunk) => chunk.join(''))
+              .join('|'),
+        )
+        .batch(3)
+        .map((chunk) => chunk.join('\n'))
+        .join(COMPACT_ROW_SPLITTER);
+  }
+
   String buildStateString() {
     StringBuffer state = StringBuffer(COL_HEADER);
     for (int row = 0; row < 9; row++) {
@@ -193,6 +221,14 @@ class Cell {
     if (given) return;
     value = val;
     candidates.clear();
+  }
+
+  String toString() {
+    return value == 0
+        ? ' '
+        : given
+        ? purple(value)
+        : blue(value);
   }
 
   String getStringForSubCell(int subRow, int subCol) {

@@ -19,8 +19,8 @@ void main(List<String> args) {
       ? rawFile.substring(0, rawFile.length - 1)
       : rawFile;
   var engine = SudokuEngine(puzzleStr, autoSolve);
-  print(engine.buildStateString());
-  while (true) {
+  print(engine.getBoardString());
+  while (!engine.solved) {
     if (!error.isEmpty) {
       print(error);
       error = '';
@@ -39,7 +39,7 @@ void main(List<String> args) {
       if (row == null || col == null || val == null) {
       } else
         error = engine.placeVal(row, col, val);
-      print(engine.buildStateString());
+      print(engine.getBoardString());
     }
   }
 }
