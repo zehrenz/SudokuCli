@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 const COL_HEADER = '   1   2   3   4   5   6   7   8   9 \n';
 const ROW_HEADER = '  a  b  c  d  e  f  g  h  i ';
 var ROW_SPLITTER = blue('  ---+---+---+---+---+---+---+---+---\n');
