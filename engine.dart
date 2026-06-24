@@ -40,6 +40,11 @@ class SudokuEngine {
     if (autoSolve) solve();
   }
 
+  void toggleAutoSolve() {
+    autoSolve = !autoSolve;
+    if (autoSolve) solve();
+  }
+
   String placeVal(int row, int col, int val) {
     var cell = cells[row][col];
     if (cell.value != 0) {

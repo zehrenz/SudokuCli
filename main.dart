@@ -19,37 +19,70 @@ void main(List<String> args) {
       ? rawFile.substring(0, rawFile.length - 1)
       : rawFile;
   var engine = SudokuEngine(puzzleStr, autoSolve);
-  print(engine.getBoardString());
+  inputLoop(engine);
+}
+
+void inputLoop(SudokuEngine engine) {
+  var skipBoard = false;
   while (!engine.solved) {
-    if (!error.isEmpty) {
-      print(error);
-      error = '';
+    if (skipBoard) {
+      skipBoard = false;
+    } else {
+      print(engine.getBoardString());
     }
-    stdout.write('sudoku > ');
+
+    if (!error.isEmpty) {
+      print(red(error));
+      error = '';
+    } else {
+      print('');
+    }
+
+    stdout.write('${engine.autoSolve ? "[auto] " : ""}sudoku > ');
     var input = stdin.readLineSync();
     if (input != null) {
       if (input == 'exit') {
         return;
       }
+      if (input == 'auto') {
+        engine.toggleAutoSolve();
+        continue;
+      }
+      if (input == 'solve') {
+        engine.solve();
+        continue;
+      }
       if (input == 'help' || input == '') {
         showHelp();
+        // Skip printing the board after showing help
+        skipBoard = true;
         continue;
       }
       var (row, col, val) = parseInput(input);
-      if (row == null || col == null || val == null) {
-      } else
+      if (row != null && col != null && val != null)
         error = engine.placeVal(row, col, val);
-      print(engine.getBoardString());
     }
   }
+  print(engine.getBoardString());
 }
 
 void showHelp() {
-  print('Available commands:');
-  print('\thelp:\t\t\t\tshow help');
-  print('\texit:\t\t\t\ttexit the program');
-  print("\trow[a-i]col[1-9]val[1-9]:\tplace 'val' at row and col");
-  print("\t  ex: a45\t\t\tplaces '5' at row 'a' col '4'");
+  print(
+    '''
+Enter a guess or a command (see below).
+A guess is a row (a-i), column (1-9), and value (1-9) to place in the puzzle.
+\tex: 'a45' places '5' at row 'a' col '4'
+A guessed value must be a candidate for that cell.
+
+Commands:
+\tsolve:\ttry to solve the puzzle
+\tauto:\ttoggle auto-solve and try to solve the puzzle if enabled
+\thelp:\tshow help
+\texit:\texit the program
+
+Note: Auto-solve will only place values that are the only candidate for a cell. It will not guess.
+      If auto-solve is enabled, it will try to solve the puzzle after each guess.''',
+  );
 }
 
 var aCode = 'a'.codeUnitAt(0);
