@@ -59,6 +59,17 @@ void inputLoop(SudokuEngine engine) {
         skipBoard = true;
         continue;
       }
+      if (input.startsWith('show ')) {
+        var valStr = input.split(' ')[1];
+        var val = int.tryParse(valStr);
+        if (val == null || val < 1 || val > 9) {
+          error = 'Invalid value: ${valStr}';
+          continue;
+        }
+        engine.highlight(val);
+        skipBoard = true;
+        continue;
+      }
       var (row, col, val) = parseInput(input);
       if (row != null && col != null && val != null)
         error = engine.placeVal(row, col, val);
@@ -76,10 +87,11 @@ A guess is a row (a-i), column (1-9), and value (1-9) to place in the puzzle.
 A guessed value must be a candidate for that cell.
 
 Commands:
-\tsolve:\ttry to solve the puzzle
-\tauto:\ttoggle auto-solve and try to solve the puzzle if enabled
-\thelp:\tshow help
-\texit:\texit the program
+\tsolve:\t\ttry to solve the puzzle
+\tauto:\t\ttoggle auto-solve and try to solve the puzzle if enabled
+\tshow <val>:\thighlight all cells with the given value
+\thelp:\t\tshow help
+\texit:\t\texit the program
 
 Note: Auto-solve will only place values that are the only candidate for a cell. It will not guess.
       If auto-solve is enabled, it will try to solve the puzzle after each guess.''',

@@ -26,9 +26,14 @@ class SudokuEngine {
     if (autoSolve) solve();
   }
 
+  // region Commands
   void toggleAutoSolve() {
     autoSolve = !autoSolve;
     if (autoSolve) solve();
+  }
+
+  void highlight(int val) {
+    print(getBoardString(val));
   }
 
   String placeVal(int row, int col, int val) {
@@ -43,6 +48,39 @@ class SudokuEngine {
     return '';
   }
 
+  void solve() {
+    var changed = true;
+    while (changed) {
+      changed = false;
+      changed = placeSingleCandidates() || changed;
+      // Add more solving heuristics here in the future
+    }
+  }
+  // endregion
+
+  // region Heuristics
+  bool placeSingleCandidates() {
+    var overallChanged = false;
+    var localChanged = true;
+    while (localChanged) {
+      localChanged = false;
+      for (int row = 0; row < 9; row++) {
+        for (int col = 0; col < 9; col++) {
+          var cell = cells[row][col];
+          if (cell.value == 0 && cell.candidates.length == 1) {
+            _placeVal(row, col, cell.candidates.first);
+            overallChanged = true;
+            localChanged = true;
+          }
+        }
+      }
+    }
+    return overallChanged;
+  }
+
+  // endregion
+
+  // region Placement
   String _placeVal(int row, int col, int val) {
     var cell = cells[row][col];
     cell.setValue(val);
@@ -50,30 +88,6 @@ class SudokuEngine {
     updateCol(col, val);
     updateBox(row ~/ 3, col ~/ 3, val);
     return '';
-  }
-
-  void solve() {
-    var changed = true;
-    while (changed) {
-      changed = false;
-      for (int row = 0; row < 9; row++) {
-        for (int col = 0; col < 9; col++) {
-          var cell = cells[row][col];
-          if (cell.value == 0 && cell.candidates.length == 1) {
-            _placeVal(row, col, cell.candidates.first);
-            changed = true;
-          }
-        }
-      }
-    }
-  }
-
-  void updateAllCandidates() {
-    for (int row = 0; row < 9; row++) {
-      for (int col = 0; col < 9; col++) {
-        updateCandidates(row, col);
-      }
-    }
   }
 
   void updateRow(int row, int val) {
@@ -97,8 +111,18 @@ class SudokuEngine {
       }
     }
   }
+  // endregion
 
-  void updateCandidates(int row, int col) {
+  // region Candidate Updates
+  void updateAllCandidates() {
+    for (int row = 0; row < 9; row++) {
+      for (int col = 0; col < 9; col++) {
+        updateCandidatesForCell(row, col);
+      }
+    }
+  }
+
+  void updateCandidatesForCell(int row, int col) {
     var cell = cells[row][col];
     if (cell.value != 0) return;
     updateCandidatesByRow(row, cell);
@@ -127,6 +151,7 @@ class SudokuEngine {
       }
     }
   }
+  // endregion
 
   static List<List<Cell>> parseInput(String strGrid) {
     List<List<Cell>> newValues = [];
@@ -146,8 +171,9 @@ class SudokuEngine {
     return newValues;
   }
 
-  String getBoardString() {
-    return solved ? buildCompactString() : buildStateString();
+  // region Printing
+  String getBoardString([int? highlight]) {
+    return solved ? buildCompactString() : buildStateString(highlight);
   }
 
   String buildCompactString() {
@@ -164,7 +190,7 @@ class SudokuEngine {
         .join(COMPACT_ROW_SPLITTER);
   }
 
-  String buildStateString() {
+  String buildStateString([int? highlight]) {
     StringBuffer state = StringBuffer(COL_HEADER);
     for (int row = 0; row < 9; row++) {
       for (var subRow in [0, 1, 2]) {
@@ -172,7 +198,7 @@ class SudokuEngine {
         for (int col = 0; col < 9; col++) {
           for (var subCol in [0, 1, 2]) {
             var cell = cells[row][col];
-            state.write(cell.getStringForSubCell(subRow, subCol));
+            state.write(cell.getStringForSubCell(subRow, subCol, highlight));
           }
           if (col < 8)
             if ((col + 1) % 3 == 0)
@@ -190,6 +216,8 @@ class SudokuEngine {
     }
     return state.toString();
   }
+
+  // endregion
 }
 
 class Cell {
@@ -222,12 +250,14 @@ class Cell {
         : blue(value);
   }
 
-  String getStringForSubCell(int subRow, int subCol) {
+  String getStringForSubCell(int subRow, int subCol, [int? highlight]) {
     if (value != 0) {
       if (subRow != 1 || subCol != 1)
         return ' ';
       else
-        return given ? purple(value) : blue(value);
+        return value == highlight
+            ? orange(value)
+            : (given ? purple(value) : blue(value));
     } else {
       var val = ((subRow) * 3) + (1 + subCol);
       return candidates.contains(val)
